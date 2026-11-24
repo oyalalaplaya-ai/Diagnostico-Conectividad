@@ -1,162 +1,112 @@
-import javax.swing.*;
-import java.awt.*;
+import java.util.Scanner;
 
-public class DiagnosticoConectividad extends JFrame {
+public class DiagnosticoConectividad {
 
-    private JTextArea areaResultado;
-
-    public DiagnosticoConectividad() {
-        // Configuración de la ventana principal
-        setTitle("Sistema de Diagnóstico de Conectividad");
-        setSize(620, 460);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null); // Centra la ventana en pantalla
-        setLayout(new BorderLayout(10, 10));
-
-        // Panel Superior: Título e instrucciones
-        JPanel panelSuperior = new JPanel(new GridLayout(2, 1));
-        panelSuperior.setBorder(BorderFactory.createEmptyBorder(15, 15, 5, 15));
-        
-        JLabel lblTitulo = new JLabel("DIAGNÓSTICO DE PROBLEMAS DE CONECTIVIDAD", SwingConstants.CENTER);
-        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        lblTitulo.setForeground(new Color(0, 70, 140));
-        
-        JLabel lblSubtitulo = new JLabel("Seleccione el síntoma principal que presenta su equipo:", SwingConstants.CENTER);
-        lblSubtitulo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        
-        panelSuperior.add(lblTitulo);
-        panelSuperior.add(lblSubtitulo);
-        add(panelSuperior, BorderLayout.NORTH);
-
-        // Panel Central: Botones de síntomas
-        JPanel panelBotones = new JPanel(new GridLayout(4, 1, 10, 10));
-        panelBotones.setBorder(BorderFactory.createEmptyBorder(5, 30, 10, 30));
-
-        JButton btnOpcion1 = new JButton("1. Sin acceso a Internet (icono con alerta o desconectado)");
-        JButton btnOpcion2 = new JButton("2. Conectado al Wi-Fi, pero las páginas no cargan");
-        JButton btnOpcion3 = new JButton("3. Conexión muy lenta o intermitente");
-        JButton btnLimpiar = new JButton("Limpiar resultado");
-
-        Font fuenteBtn = new Font("Segoe UI", Font.BOLD, 12);
-        btnOpcion1.setFont(fuenteBtn);
-        btnOpcion2.setFont(fuenteBtn);
-        btnOpcion3.setFont(fuenteBtn);
-
-        panelBotones.add(btnOpcion1);
-        panelBotones.add(btnOpcion2);
-        panelBotones.add(btnOpcion3);
-        panelBotones.add(btnLimpiar);
-        add(panelBotones, BorderLayout.CENTER);
-
-        // Panel Inferior: Área de diagnóstico y solución
-        areaResultado = new JTextArea(7, 40);
-        areaResultado.setEditable(false);
-        areaResultado.setLineWrap(true);
-        areaResultado.setWrapStyleWord(true);
-        areaResultado.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        areaResultado.setBorder(BorderFactory.createTitledBorder("Resultado del Diagnóstico y Solución"));
-        
-        JScrollPane scroll = new JScrollPane(areaResultado);
-        scroll.setBorder(BorderFactory.createEmptyBorder(0, 15, 15, 15));
-        add(scroll, BorderLayout.SOUTH);
-
-        // --- EVENTOS DE LOS BOTONES (Equivalente al bloque SEGÚN de PSeInt) ---
-
-        // Caso 1: Sin acceso a Internet
-        btnOpcion1.addActionListener(e -> {
-            int r1 = preguntar("¿El cable de red está conectado o el Wi-Fi está encendido?");
-            if (r1 == JOptionPane.NO_OPTION) {
-                mostrarDiagnostico(
-                    "Adaptador de red desactivado o cable desconectado.",
-                    "Active el interruptor Wi-Fi de su equipo o verifique que el cable Ethernet esté bien conectado."
-                );
-            } else if (r1 == JOptionPane.YES_OPTION) {
-                int r2 = preguntar("¿Otros dispositivos (celular, tablet) tienen internet en la misma red?");
-                if (r2 == JOptionPane.NO_OPTION) {
-                    mostrarDiagnostico(
-                        "Falla general en el router o en el proveedor de Internet (ISP).",
-                        "Reinicie el router (desconéctelo 30 segundos). Si el problema persiste, contacte a su operador."
-                    );
-                } else if (r2 == JOptionPane.YES_OPTION) {
-                    mostrarDiagnostico(
-                        "Falla de configuración IP o controlador en este equipo.",
-                        "Desactive y vuelva a activar el Wi-Fi del equipo o ejecute el solucionador de problemas de Windows."
-                    );
-                }
-            }
-        });
-
-        // Caso 2: Conectado pero sin navegación
-        btnOpcion2.addActionListener(e -> {
-            int r1 = preguntar("¿Aparece un mensaje de error de DNS en el navegador?");
-            if (r1 == JOptionPane.YES_OPTION) {
-                mostrarDiagnostico(
-                    "Falla en la resolución de nombres de dominio (DNS).",
-                    "Cambie los servidores DNS de su adaptador a los de Google (8.8.8.8 y 8.8.4.4) o reinicie la caché DNS."
-                );
-            } else if (r1 == JOptionPane.NO_OPTION) {
-                int r2 = preguntar("¿El problema ocurre en todos los navegadores (Chrome, Edge, etc.)?");
-                if (r2 == JOptionPane.YES_OPTION) {
-                    mostrarDiagnostico(
-                        "Posible bloqueo de Firewall, Antivirus o Proxy mal configurado.",
-                        "Revise la configuración de Proxy del sistema y verifique que el antivirus no bloquee la salida a Internet."
-                    );
-                } else if (r2 == JOptionPane.NO_OPTION) {
-                    mostrarDiagnostico(
-                        "Falla específica del navegador web.",
-                        "Borre el historial y la caché del navegador afectado o reinstálelo."
-                    );
-                }
-            }
-        });
-
-        // Caso 3: Conexión lenta o intermitente
-        btnOpcion3.addActionListener(e -> {
-            int r1 = preguntar("¿Se encuentra lejos del router o hay varias paredes de por medio?");
-            if (r1 == JOptionPane.YES_OPTION) {
-                mostrarDiagnostico(
-                    "Atenuación y baja intensidad de señal Wi-Fi.",
-                    "Acérquese al punto de acceso, conéctese a la banda 2.4 GHz (mayor alcance) o use un repetidor."
-                );
-            } else if (r1 == JOptionPane.NO_OPTION) {
-                int r2 = preguntar("¿Hay muchos dispositivos conectados descargando archivos o viendo video?");
-                if (r2 == JOptionPane.YES_OPTION) {
-                    mostrarDiagnostico(
-                        "Saturación del ancho de banda.",
-                        "Pause descargas pesadas en segundo plano y desconecte dispositivos que no estén en uso."
-                    );
-                } else if (r2 == JOptionPane.NO_OPTION) {
-                    mostrarDiagnostico(
-                        "Interferencia de canal Wi-Fi o saturación del router.",
-                        "Reinicie el router para liberar memoria y reasignar un canal menos congestionado."
-                    );
-                }
-            }
-        });
-
-        // Botón Limpiar
-        btnLimpiar.addActionListener(e -> areaResultado.setText(""));
-    }
-
-    // Método auxiliar para hacer preguntas Sí/No
-    private int preguntar(String mensaje) {
-        return JOptionPane.showConfirmDialog(
-            this, mensaje, "Pregunta de Diagnóstico", JOptionPane.YES_NO_OPTION
-        );
-    }
-
-    // Método auxiliar para formatear la salida en pantalla
-    private void mostrarDiagnostico(String diagnostico, String solucion) {
-        areaResultado.setText(
-            ">> DIAGNÓSTICO:\n" + diagnostico + "\n\n" +
-            ">> SOLUCIÓN RECOMENDADA:\n" + solucion
-        );
-    }
-
-    // Método principal (Main)
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new DiagnosticoConectividad().setVisible(true);
-        });
+        Scanner teclado = new Scanner(System.in);
+        int opcionMenu;
+        String resp1, resp2;
+        String continuar = "S";
+
+        while (continuar.equalsIgnoreCase("S")) {
+            System.out.println("=======================================================");
+            System.out.println("   SISTEMA DE DIAGNOSTICO DE PROBLEMAS DE CONECTIVIDAD ");
+            System.out.println("=======================================================");
+            System.out.println("Seleccione el sintoma principal que presenta su equipo:");
+            System.out.println("1. Sin acceso a Internet (icono de red con alerta o desconectado)");
+            System.out.println("2. Conectado a la red Wi-Fi, pero las paginas no cargan");
+            System.out.println("3. Conexion muy lenta o intermitente");
+            System.out.println("4. Salir del programa");
+            System.out.println("-------------------------------------------------------");
+            System.out.print("Ingrese una opcion (1-4): ");
+            opcionMenu = teclado.nextInt();
+            teclado.nextLine(); // Limpia el salto de línea
+
+            switch (opcionMenu) {
+                case 1:
+                    System.out.println("\n--- DIAGNOSTICO: SIN ACCESO A INTERNET ---");
+                    System.out.print("¿El cable de red esta conectado o el Wi-Fi esta encendido? (S/N): ");
+                    resp1 = teclado.nextLine();
+
+                    if (resp1.equalsIgnoreCase("N")) {
+                        System.out.println("\n>> DIAGNOSTICO: Adaptador de red desactivado o cable desconectado.");
+                        System.out.println(">> SOLUCION: Active el interruptor Wi-Fi de su equipo o verifique que el cable Ethernet este bien conectado.");
+                    } else {
+                        System.out.print("¿Otros dispositivos (celular, tablet) tienen internet en la misma red? (S/N): ");
+                        resp2 = teclado.nextLine();
+
+                        if (resp2.equalsIgnoreCase("N")) {
+                            System.out.println("\n>> DIAGNOSTICO: Falla general en el router o en el proveedor de Internet (ISP).");
+                            System.out.println(">> SOLUCION: Reinicie el router (desconectelo 30 segundos). Si el problema persiste, contacte a su operador.");
+                        } else {
+                            System.out.println("\n>> DIAGNOSTICO: Falla de configuracion IP o controlador en este equipo.");
+                            System.out.println(">> SOLUCION: Desactive y vuelva a activar el Wi-Fi del equipo o ejecute el solucionador de problemas de Windows.");
+                        }
+                    }
+                    break;
+
+                case 2:
+                    System.out.println("\n--- DIAGNOSTICO: CONECTADO PERO SIN NAVEGACION ---");
+                    System.out.print("¿Aparece un mensaje de error de DNS en el navegador? (S/N): ");
+                    resp1 = teclado.nextLine();
+
+                    if (resp1.equalsIgnoreCase("S")) {
+                        System.out.println("\n>> DIAGNOSTICO: Falla en la resolucion de nombres de dominio (DNS).");
+                        System.out.println(">> SOLUCION: Cambie los servidores DNS de su adaptador a los de Google (8.8.8.8 y 8.8.4.4) o reinicie la cache DNS.");
+                    } else {
+                        System.out.print("¿El problema ocurre en todos los navegadores (Chrome, Edge, etc.)? (S/N): ");
+                        resp2 = teclado.nextLine();
+
+                        if (resp2.equalsIgnoreCase("S")) {
+                            System.out.println("\n>> DIAGNOSTICO: Posible bloqueo de Firewall, Antivirus o Proxy mal configurado.");
+                            System.out.println(">> SOLUCION: Revise la configuracion de Proxy del sistema y verifique que el antivirus no bloquee la salida a Internet.");
+                        } else {
+                            System.out.println("\n>> DIAGNOSTICO: Falla especifica del navegador web.");
+                            System.out.println(">> SOLUCION: Borre el historial y la cache del navegador afectado o reinstalelo.");
+                        }
+                    }
+                    break;
+
+                case 3:
+                    System.out.println("\n--- DIAGNOSTICO: CONEXION LENTA O INTERMITENTE ---");
+                    System.out.print("¿Se encuentra lejos del router o hay varias paredes de por medio? (S/N): ");
+                    resp1 = teclado.nextLine();
+
+                    if (resp1.equalsIgnoreCase("S")) {
+                        System.out.println("\n>> DIAGNOSTICO: Atenuacion y baja intensidad de señal Wi-Fi.");
+                        System.out.println(">> SOLUCION: Acerquese al punto de acceso, conectese a la banda 2.4 GHz (mayor alcance) o use un repetidor.");
+                    } else {
+                        System.out.print("¿Hay muchos dispositivos conectados descargando archivos o viendo video? (S/N): ");
+                        resp2 = teclado.nextLine();
+
+                        if (resp2.equalsIgnoreCase("S")) {
+                            System.out.println("\n>> DIAGNOSTICO: Saturacion del ancho de banda.");
+                            System.out.println(">> SOLUCION: Pause descargas pesadas en segundo plano y desconecte dispositivos que no esten en uso.");
+                        } else {
+                            System.out.println("\n>> DIAGNOSTICO: Interferencia de canal Wi-Fi o saturacion del router.");
+                            System.out.println(">> SOLUCION: Reinicie el router para liberar memoria y reasignar un canal menos congestionado.");
+                        }
+                    }
+                    break;
+
+                case 4:
+                    System.out.println("\nSaliendo del sistema de diagnostico. ¡Hasta pronto!");
+                    continuar = "N";
+                    break;
+
+                default:
+                    System.out.println("\nERROR: Opcion no valida. Por favor seleccione un numero del 1 al 4.");
+                    break;
+            }
+
+            if (opcionMenu != 4) {
+                System.out.println("\n-------------------------------------------------------");
+                System.out.print("¿Desea realizar otro diagnostico? (S/N): ");
+                continuar = teclado.nextLine();
+                System.out.println();
+            }
+        }
+
+        teclado.close();
     }
 }
